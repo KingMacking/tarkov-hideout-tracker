@@ -109,43 +109,27 @@ const App = () => {
 		const targetLevel = targetStation?.levels?.find((l) => l?.level === level.value);
 		if (!targetStation || !targetLevel) return {};
 
-		// Mapa para acumular ítems: { itemId: { quantity, item } }
 		const items = {};
+		const processedLevels = new Set(); // Para evitar procesar el mismo nivel múltiples veces
 
 		const processStationLevel = (stationName, levelNum) => {
 			const station = stations.find((s) => s?.name === stationName);
+			if (!station) return;
+
+			// Crear una clave única para este nivel de estación
+			const levelKey = `${station.id}_${levelNum}`;
+			if (processedLevels.has(levelKey)) return; // Evitar procesar el mismo nivel múltiples veces
+			processedLevels.add(levelKey);
+
 			const levelData = station?.levels?.find((l) => l?.level === levelNum);
-			if (!station || !levelData) return;
+			if (!levelData) return;
 
 			// Verificar si ya tenemos la estación construida al nivel requerido
 			const builtLevel = builtStations[station.id] || 0;
-			if (builtLevel >= levelNum) {
-				return; // Skip si ya tenemos la estación construida al nivel necesario
-			}
+			if (builtLevel >= levelNum) return;
 
-			if (levelData.itemRequirements && Array.isArray(levelData.itemRequirements)) {
-				levelData.itemRequirements.forEach((req) => {
-					if (req?.item?.id && req?.quantity) {
-						const itemId = req.item.id;
-						const itemName = req.item.name;
-						const itemImageLink = req.item.imageLink;
-						const itemData = itemsMap[itemId] || {
-							id: itemId,
-							name: itemName,
-							imageLink: itemImageLink,
-						}; // Fallback si no se encuentra el ítem
-						if (!items[itemId]) {
-							items[itemId] = { quantity: 0, item: itemData };
-						}
-						items[itemId].quantity += req.quantity;
-					}
-				});
-			}
-
-			if (
-				levelData.stationLevelRequirements &&
-				Array.isArray(levelData.stationLevelRequirements)
-			) {
+			// Procesar primero las dependencias de otras estaciones
+			if (levelData.stationLevelRequirements?.length > 0) {
 				levelData.stationLevelRequirements.forEach((dep) => {
 					const depStationName = dep?.station?.normalizedName;
 					const depLevel = dep?.level;
@@ -155,19 +139,42 @@ const App = () => {
 					const depStation = stations.find((s) => s?.normalizedName === depStationName);
 					if (!depStation) return;
 
-					// Verificar si ya tenemos la estación dependiente construida
-					const builtLevel = builtStations[depStation.id] || 0;
-					if (builtLevel < depLevel) {
-						for (let lvl = builtLevel + 1; lvl <= depLevel; lvl++) {
+					const depBuiltLevel = builtStations[depStation.id] || 0;
+					if (depBuiltLevel < depLevel) {
+						// Procesar solo los niveles que faltan
+						for (let lvl = depBuiltLevel + 1; lvl <= depLevel; lvl++) {
 							processStationLevel(depStation.name, lvl);
 						}
+					}
+				});
+			}
+
+			// Procesar los requerimientos de items de este nivel
+			if (levelData.itemRequirements?.length > 0) {
+				levelData.itemRequirements.forEach((req) => {
+					if (!req?.item?.id || !req?.quantity) return;
+
+					const itemId = req.item.id;
+					const itemData = itemsMap[itemId] || {
+						id: itemId,
+						name: req.item.name,
+						imageLink: req.item.imageLink,
+					};
+
+					if (!items[itemId]) {
+						items[itemId] = { quantity: 0, item: itemData };
+					}
+					
+					// Asegurarse de que la cantidad sea un número válido
+					const quantity = parseInt(req.quantity, 10);
+					if (!isNaN(quantity) && quantity > 0) {
+						items[itemId].quantity += quantity;
 					}
 				});
 			}
 		};
 
 		processStationLevel(targetStation.name, targetLevel.level);
-
 		return items;
 	};
 
