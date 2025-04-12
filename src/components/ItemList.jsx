@@ -79,7 +79,7 @@ const ItemList = ({ items }) => {
                                     x{quantity}
                                 </span>
                                 {/* Tooltip con el nombre */}
-                                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-75 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                <div className="absolute inset-0 flex items-center justify-center bg-[rgba(0,0,0,0.5)] text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                                     <span className="text-center px-2 text-sm">{item.name}</span>
                                 </div>
                             </div>
