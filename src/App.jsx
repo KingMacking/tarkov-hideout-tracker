@@ -2,15 +2,33 @@ import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import ItemList from "./components/ItemList";
 import hideoutData from "./data/hideoutData.json";
+import StationsList from "./components/StationsList";
 
 const App = () => {
+	// Inicializar builtStations con los datos del localStorage
+	const initialBuiltStations = (() => {
+		try {
+			const saved = localStorage.getItem("builtStations");
+			return saved ? JSON.parse(saved) : {};
+		} catch (e) {
+			console.error("Error loading built stations from localStorage:", e);
+			return {};
+		}
+	})();
+
 	const [stations, setStations] = useState([]);
-	const [itemsMap, setItemsMap] = useState({}); // Mapa de itemId a datos del ítem
+	const [itemsMap, setItemsMap] = useState({});
 	const [selectedStation, setSelectedStation] = useState(null);
 	const [selectedLevel, setSelectedLevel] = useState(null);
 	const [requiredItems, setRequiredItems] = useState({});
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const [builtStations, setBuiltStations] = useState(initialBuiltStations);
+
+	// Solo mantener el useEffect para guardar cambios
+	useEffect(() => {
+		localStorage.setItem("builtStations", JSON.stringify(builtStations));
+	}, [builtStations]);
 
 	// Cargar los datos del JSON cuando el componente se monta
 	useEffect(() => {
@@ -99,16 +117,22 @@ const App = () => {
 			const levelData = station?.levels?.find((l) => l?.level === levelNum);
 			if (!station || !levelData) return;
 
+			// Verificar si ya tenemos la estación construida al nivel requerido
+			const builtLevel = builtStations[station.id] || 0;
+			if (builtLevel >= levelNum) {
+				return; // Skip si ya tenemos la estación construida al nivel necesario
+			}
+
 			if (levelData.itemRequirements && Array.isArray(levelData.itemRequirements)) {
 				levelData.itemRequirements.forEach((req) => {
 					if (req?.item?.id && req?.quantity) {
 						const itemId = req.item.id;
-                        const itemName = req.item.name;
-                        const itemImageLink = req.item.imageLink;
+						const itemName = req.item.name;
+						const itemImageLink = req.item.imageLink;
 						const itemData = itemsMap[itemId] || {
 							id: itemId,
 							name: itemName,
-                            imageLink: itemImageLink,
+							imageLink: itemImageLink,
 						}; // Fallback si no se encuentra el ítem
 						if (!items[itemId]) {
 							items[itemId] = { quantity: 0, item: itemData };
@@ -131,8 +155,12 @@ const App = () => {
 					const depStation = stations.find((s) => s?.normalizedName === depStationName);
 					if (!depStation) return;
 
-					for (let lvl = 1; lvl <= depLevel; lvl++) {
-						processStationLevel(depStation.name, lvl);
+					// Verificar si ya tenemos la estación dependiente construida
+					const builtLevel = builtStations[depStation.id] || 0;
+					if (builtLevel < depLevel) {
+						for (let lvl = builtLevel + 1; lvl <= depLevel; lvl++) {
+							processStationLevel(depStation.name, lvl);
+						}
 					}
 				});
 			}
@@ -147,8 +175,21 @@ const App = () => {
 	useEffect(() => {
 		const items = calculateRequiredItems(selectedStation, selectedLevel);
 		setRequiredItems(items);
-	// eslint-disable-next-line react-hooks/exhaustive-deps
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [selectedStation, selectedLevel, stations, itemsMap]);
+
+	// Modificar la función handleStationLevelChange para que limpie el nivel si es 0
+	const handleStationLevelChange = (stationId, level) => {
+		setBuiltStations((prev) => {
+			const newBuiltStations = { ...prev };
+			if (level === 0) {
+				delete newBuiltStations[stationId]; // Eliminar la estación si no está construida
+			} else {
+				newBuiltStations[stationId] = level;
+			}
+			return newBuiltStations;
+		});
+	};
 
 	return (
 		<div className='min-h-screen bg-gray-100 flex flex-col items-center py-8'>
@@ -162,9 +203,20 @@ const App = () => {
 			)}
 
 			{!isLoading && !error && (
-				<div className='w-full max-w-lg bg-white shadow-lg rounded-lg p-6'>
-					<div className='space-y-4'>
-						<div>
+				<div className='w-full max-w-4xl space-y-6'>
+					{/* Agregar el componente StationsList */}
+					<div className='bg-white shadow-lg rounded-lg p-6'>
+						<StationsList
+							stations={stations}
+							builtStations={builtStations}
+							onStationLevelChange={handleStationLevelChange}
+						/>
+					</div>
+
+					{/* Selector de estación y nivel existente */}
+					<div className='bg-white shadow-lg rounded-lg p-6'>
+						<div className='space-y-4'>
+							<div></div>
 							<label className='block text-sm font-medium text-gray-700 mb-1'>
 								Select Station:
 							</label>
