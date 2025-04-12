@@ -61,7 +61,7 @@ const ItemList = ({ items }) => {
                 </ul>
             ) : (
                 // Vista de grid
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
                     {Object.entries(items).map(([itemId, { quantity, item }]) => (
                         <div
                             key={itemId}
