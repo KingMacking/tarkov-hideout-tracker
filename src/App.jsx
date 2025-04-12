@@ -176,7 +176,7 @@ const App = () => {
 		const items = calculateRequiredItems(selectedStation, selectedLevel);
 		setRequiredItems(items);
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedStation, selectedLevel, stations, itemsMap]);
+	}, [selectedStation, selectedLevel, stations, itemsMap, builtStations]);
 
 	// Modificar la función handleStationLevelChange para que limpie el nivel si es 0
 	const handleStationLevelChange = (stationId, level) => {
