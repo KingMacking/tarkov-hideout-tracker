@@ -4,7 +4,7 @@ const ItemList = ({ items }) => {
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'grid'
 
     if (!items || Object.keys(items).length === 0) {
-        return <p className='text-gray-500 italic'>No items required.</p>;
+        return <p className='text-gray-500 dark:text-gray-400 italic'>No items required.</p>;
     }
 
     const toggleView = () => {
@@ -14,10 +14,10 @@ const ItemList = ({ items }) => {
     return (
         <div className="space-y-4">
             <div className="flex justify-between items-center">
-                <h2 className='text-xl font-semibold text-gray-800'>Required Items:</h2>
+                <h2 className='text-xl font-semibold text-gray-800 dark:text-gray-200'>Required Items:</h2>
                 <button
                     onClick={toggleView}
-                    className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded-md text-sm flex items-center gap-2"
+                    className="px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:text-gray-300 dark:hover:bg-gray-600 rounded-md text-sm flex items-center gap-2"
                 >
                     {viewMode === 'list' ? (
                         <>
@@ -43,7 +43,7 @@ const ItemList = ({ items }) => {
                     {Object.entries(items).map(([itemId, { quantity, item }]) => (
                         <li
                             key={itemId}
-                            className='flex items-center p-3 bg-gray-50 rounded-lg shadow-sm'
+                            className='flex items-center p-3 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm'
                         >
                             {item.imageLink && (
                                 <img
@@ -53,8 +53,8 @@ const ItemList = ({ items }) => {
                                 />
                             )}
                             <div className='flex-1 flex justify-between items-center'>
-                                <span className='text-gray-700'>{item.name}</span>
-                                <span className='text-gray-900 font-medium'>x{quantity}</span>
+                                <span className='text-gray-700 dark:text-gray-200'>{item.name}</span>
+                                <span className='text-gray-900 dark:text-gray-100 font-medium'>x{quantity}</span>
                             </div>
                         </li>
                     ))}
@@ -67,7 +67,7 @@ const ItemList = ({ items }) => {
                             key={itemId}
                             className="relative group"
                         >
-                            <div className="aspect-square bg-gray-50 rounded-lg flex flex-col items-center justify-center shadow-sm overflow-hidden">
+                            <div className="aspect-square bg-gray-50 dark:bg-gray-700 rounded-lg flex flex-col items-center justify-center shadow-sm overflow-hidden">
                                 {item.imageLink && (
                                     <img
                                         src={item.imageLink}

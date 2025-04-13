@@ -1,270 +1,100 @@
 import React, { useState, useEffect } from "react";
-import Select from "react-select";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import ItemList from "./components/ItemList";
-import hideoutData from "./data/hideoutData.json";
 import StationsList from "./components/StationsList";
+import { StationSelectors } from "./components/StationSelectors";
+import hideoutData from "./data/hideoutData.json";
+import { useHideoutData } from "./hooks/useHideoutData";
+import { useBuiltStations } from "./hooks/useBuiltStations";
+import { calculateRequiredItems } from "./utils/hideoutCalculator";
+
+const ThemeToggle = () => {
+    const { darkMode, toggleDarkMode } = useTheme();
+    
+    return (
+        <button
+            onClick={toggleDarkMode}
+            className="fixed top-4 right-4 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+            {darkMode ? (
+                <svg className="w-6 h-6 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" />
+                </svg>
+            ) : (
+                <svg className="w-6 h-6 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
+                </svg>
+            )}
+        </button>
+    );
+};
+
+const AppContent = () => {
+    const { stations, itemsMap, isLoading, error } = useHideoutData(hideoutData);
+    const { builtStations, handleStationLevelChange } = useBuiltStations();
+    const [selectedStation, setSelectedStation] = useState(null);
+    const [selectedLevel, setSelectedLevel] = useState(null);
+    const [requiredItems, setRequiredItems] = useState({});
+
+    useEffect(() => {
+        const items = calculateRequiredItems({
+            station: selectedStation,
+            level: selectedLevel,
+            stations,
+            itemsMap,
+            builtStations
+        });
+        setRequiredItems(items);
+    }, [selectedStation, selectedLevel, stations, itemsMap, builtStations]);
+
+    return (
+        <div className='min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center py-8'>
+            <ThemeToggle />
+            <h1 className='text-4xl font-bold text-gray-800 dark:text-gray-100 mb-6'>
+                Tarkov Hideout Item Calculator
+            </h1>
+
+            {isLoading && <p className='text-lg text-gray-600 dark:text-gray-400'>Loading...</p>}
+            {error && (
+                <p className='text-lg text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-200 p-4 rounded-lg mb-4'>{error}</p>
+            )}
+
+            {!isLoading && !error && (
+                <div className='w-full max-w-4xl space-y-6'>
+                    <div className='bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6'>
+                        <StationsList
+                            stations={stations}
+                            builtStations={builtStations}
+                            onStationLevelChange={handleStationLevelChange}
+                        />
+                    </div>
+
+                    <div className='bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6'>
+                        <StationSelectors
+                            stations={stations}
+                            selectedStation={selectedStation}
+                            selectedLevel={selectedLevel}
+                            setSelectedStation={setSelectedStation}
+                            setSelectedLevel={setSelectedLevel}
+                        />
+                    </div>
+
+                    <div className='mt-6'>
+                        <ItemList items={requiredItems} />
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
 
 const App = () => {
-	// Inicializar builtStations con los datos del localStorage
-	const initialBuiltStations = (() => {
-		try {
-			const saved = localStorage.getItem("builtStations");
-			return saved ? JSON.parse(saved) : {};
-		} catch (e) {
-			console.error("Error loading built stations from localStorage:", e);
-			return {};
-		}
-	})();
-
-	const [stations, setStations] = useState([]);
-	const [itemsMap, setItemsMap] = useState({});
-	const [selectedStation, setSelectedStation] = useState(null);
-	const [selectedLevel, setSelectedLevel] = useState(null);
-	const [requiredItems, setRequiredItems] = useState({});
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState(null);
-	const [builtStations, setBuiltStations] = useState(initialBuiltStations);
-
-	// Solo mantener el useEffect para guardar cambios
-	useEffect(() => {
-		localStorage.setItem("builtStations", JSON.stringify(builtStations));
-	}, [builtStations]);
-
-	// Cargar los datos del JSON cuando el componente se monta
-	useEffect(() => {
-		const loadData = () => {
-			setIsLoading(true);
-			setError(null);
-			try {
-				console.log("Datos cargados del JSON:", hideoutData);
-
-				// Cargar estaciones
-				if (hideoutData?.hideoutStations && Array.isArray(hideoutData.hideoutStations)) {
-					setStations(hideoutData.hideoutStations);
-				} else if (Array.isArray(hideoutData)) {
-					setStations(hideoutData);
-				} else {
-					console.error(
-						"El archivo JSON no contiene un array válido de estaciones:",
-						hideoutData
-					);
-					setStations([]);
-					setError("El archivo de datos no tiene el formato esperado.");
-					return;
-				}
-
-				// Cargar ítems y crear un mapa de itemId a datos del ítem
-				// Asumimos que hideoutData.items contiene la lista de ítems
-				if (hideoutData?.items && Array.isArray(hideoutData.items)) {
-					const map = hideoutData.items.reduce((acc, item) => {
-						acc[item.id] = item; // Mapa: itemId -> { id, name, imageLink, ... }
-						return acc;
-					}, {});
-					setItemsMap(map);
-				} else {
-					console.warn("No se encontraron ítems en el JSON. Usando placeholders.");
-					setItemsMap({});
-				}
-			} catch (err) {
-				console.error("Error al cargar los datos del JSON:", err);
-				setError("Failed to load data from JSON.");
-				setStations([]);
-				setItemsMap({});
-			} finally {
-				setIsLoading(false);
-			}
-		};
-		loadData();
-	}, []);
-
-	// Options para el dropdown de estaciones (nombres únicos)
-	const stationOptions =
-		stations.length > 0
-			? [...new Set(stations.map((station) => station?.name).filter(Boolean))].map(
-					(name) => ({
-						value: name,
-						label: name,
-					})
-			  )
-			: [];
-
-	// Options para el dropdown de niveles (basado en la estación seleccionada)
-	const levelOptions =
-		selectedStation && stations.length > 0
-			? stations
-					.filter((station) => station?.name === selectedStation.value)
-					.flatMap((station) => station?.levels || [])
-					.map((level) => ({
-						value: level?.level,
-						label: `Level ${level?.level}`,
-					}))
-					.filter((option) => option.value !== undefined)
-			: [];
-
-	// Función para calcular los ítems requeridos, incluyendo dependencias
-	const calculateRequiredItems = (station, level) => {
-		if (!station || !level || !stations.length) return {};
-
-		const targetStation = stations.find((s) => s?.name === station.value);
-		const targetLevel = targetStation?.levels?.find((l) => l?.level === level.value);
-		if (!targetStation || !targetLevel) return {};
-
-		const items = {};
-		const processedLevels = new Set(); // Para evitar procesar el mismo nivel múltiples veces
-
-		const processStationLevel = (stationName, levelNum) => {
-			const station = stations.find((s) => s?.name === stationName);
-			if (!station) return;
-
-			// Crear una clave única para este nivel de estación
-			const levelKey = `${station.id}_${levelNum}`;
-			if (processedLevels.has(levelKey)) return; // Evitar procesar el mismo nivel múltiples veces
-			processedLevels.add(levelKey);
-
-			const levelData = station?.levels?.find((l) => l?.level === levelNum);
-			if (!levelData) return;
-
-			// Verificar si ya tenemos la estación construida al nivel requerido
-			const builtLevel = builtStations[station.id] || 0;
-			if (builtLevel >= levelNum) return;
-
-			// Procesar primero las dependencias de otras estaciones
-			if (levelData.stationLevelRequirements?.length > 0) {
-				levelData.stationLevelRequirements.forEach((dep) => {
-					const depStationName = dep?.station?.normalizedName;
-					const depLevel = dep?.level;
-
-					if (!depStationName || !depLevel) return;
-
-					const depStation = stations.find((s) => s?.normalizedName === depStationName);
-					if (!depStation) return;
-
-					const depBuiltLevel = builtStations[depStation.id] || 0;
-					if (depBuiltLevel < depLevel) {
-						// Procesar solo los niveles que faltan
-						for (let lvl = depBuiltLevel + 1; lvl <= depLevel; lvl++) {
-							processStationLevel(depStation.name, lvl);
-						}
-					}
-				});
-			}
-
-			// Procesar los requerimientos de items de este nivel
-			if (levelData.itemRequirements?.length > 0) {
-				levelData.itemRequirements.forEach((req) => {
-					if (!req?.item?.id || !req?.quantity) return;
-
-					const itemId = req.item.id;
-					const itemData = itemsMap[itemId] || {
-						id: itemId,
-						name: req.item.name,
-						imageLink: req.item.imageLink,
-					};
-
-					if (!items[itemId]) {
-						items[itemId] = { quantity: 0, item: itemData };
-					}
-					
-					// Asegurarse de que la cantidad sea un número válido
-					const quantity = parseInt(req.quantity, 10);
-					if (!isNaN(quantity) && quantity > 0) {
-						items[itemId].quantity += quantity;
-					}
-				});
-			}
-		};
-
-		processStationLevel(targetStation.name, targetLevel.level);
-		return items;
-	};
-
-	// Actualizar ítems requeridos cuando cambian las selecciones
-	useEffect(() => {
-		const items = calculateRequiredItems(selectedStation, selectedLevel);
-		setRequiredItems(items);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [selectedStation, selectedLevel, stations, itemsMap, builtStations]);
-
-	// Modificar la función handleStationLevelChange para que limpie el nivel si es 0
-	const handleStationLevelChange = (stationId, level) => {
-		setBuiltStations((prev) => {
-			const newBuiltStations = { ...prev };
-			if (level === 0) {
-				delete newBuiltStations[stationId]; // Eliminar la estación si no está construida
-			} else {
-				newBuiltStations[stationId] = level;
-			}
-			return newBuiltStations;
-		});
-	};
-
-	return (
-		<div className='min-h-screen bg-gray-100 flex flex-col items-center py-8'>
-			<h1 className='text-4xl font-bold text-gray-800 mb-6'>
-				Tarkov Hideout Item Calculator
-			</h1>
-
-			{isLoading && <p className='text-lg text-gray-600'>Loading...</p>}
-			{error && (
-				<p className='text-lg text-red-600 bg-red-100 p-4 rounded-lg mb-4'>{error}</p>
-			)}
-
-			{!isLoading && !error && (
-				<div className='w-full max-w-4xl space-y-6'>
-					{/* Agregar el componente StationsList */}
-					<div className='bg-white shadow-lg rounded-lg p-6'>
-						<StationsList
-							stations={stations}
-							builtStations={builtStations}
-							onStationLevelChange={handleStationLevelChange}
-						/>
-					</div>
-
-					{/* Selector de estación y nivel existente */}
-					<div className='bg-white shadow-lg rounded-lg p-6'>
-						<div className='space-y-4'>
-							<div></div>
-							<label className='block text-sm font-medium text-gray-700 mb-1'>
-								Select Station:
-							</label>
-							<Select
-								options={stationOptions}
-								value={selectedStation}
-								onChange={setSelectedStation}
-								placeholder='Choose a station'
-								isDisabled={stationOptions.length === 0}
-								className='w-full'
-								classNamePrefix='select'
-							/>
-						</div>
-						<div>
-							<label className='block text-sm font-medium text-gray-700 mb-1'>
-								Select Level:
-							</label>
-							<Select
-								options={levelOptions}
-								value={selectedLevel}
-								onChange={setSelectedLevel}
-								placeholder='Choose a level'
-								isDisabled={!selectedStation || levelOptions.length === 0}
-								className='w-full'
-								classNamePrefix='select'
-							/>
-						</div>
-					</div>
-
-					<div className='mt-6'>
-						{!selectedStation || !selectedLevel && (
-							<h2 className='text-2xl font-semibold text-gray-800 mb-4'>
-								Required Items
-							</h2>
-						)}
-						<ItemList items={requiredItems} />
-					</div>
-				</div>
-			)}
-		</div>
-	);
+    return (
+        <ThemeProvider>
+            <AppContent />
+        </ThemeProvider>
+    );
 };
 
 export default App;

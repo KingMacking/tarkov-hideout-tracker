@@ -1,3 +1,20 @@
-@import 'tailwindcss';
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Aquí puedes agregar estilos personalizados si lo deseas */
+
+:root {
+	--select-bg: white;
+	--select-border: #e2e8f0;
+	--select-text: #1a202c;
+	--select-hover: #f7fafc;
+	--select-placeholder: #a0aec0;
+}
+
+.dark {
+	--select-bg: #1a202c;
+	--select-border: #4a5568;
+	--select-text: #e2e8f0;
+	--select-hover: #2d3748;
+	--select-placeholder: #718096;
+}
