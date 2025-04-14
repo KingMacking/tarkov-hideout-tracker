@@ -5,7 +5,20 @@ const ItemList = ({ items }) => {
     const [viewMode, setViewMode] = useState('list');
     const { obtainedItems, toggleItemObtained } = useObtainedItems();
 
+    const isRoubles = (itemId) => itemId === '5449016a4bdc2d6f028b456f';
+
     const renderQuantityControls = (itemId, totalRequired, inGrid = false) => {
+        // Si es Roubles, solo mostrar la cantidad
+        if (isRoubles(itemId)) {
+            return (
+                <div className={`flex items-center justify-center ${inGrid ? 'text-white' : 'text-gray-700 dark:text-gray-200'}`}>
+                    <span className={inGrid ? "text-sm font-medium" : "text-base font-medium"}>
+                        ₽{totalRequired.toLocaleString()}
+                    </span>
+                </div>
+            );
+        }
+
         const obtained = obtainedItems[itemId] || 0;
         const progress = (obtained / totalRequired) * 100;
 
@@ -146,7 +159,7 @@ const ItemList = ({ items }) => {
                             <div className="relative overflow-hidden rounded-lg aspect-square bg-gray-50 dark:bg-gray-700">
                                 {/* Required quantity badge */}
                                 <div className="absolute z-10 px-2 py-1 text-sm font-medium text-white rounded-full group-hover:hidden top-2 right-2 bg-black/50">
-                                    x{quantity}
+                                    {isRoubles(itemId) ? `₽${quantity.toLocaleString()}` : `x${quantity}`}
                                 </div>
 
                                 {item.imageLink && (
