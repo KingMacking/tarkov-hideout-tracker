@@ -159,7 +159,10 @@ const ItemList = ({ items }) => {
                             <div className="relative overflow-hidden rounded-lg aspect-square bg-gray-50 dark:bg-gray-700">
                                 {/* Required quantity badge */}
                                 <div className="absolute z-10 px-2 py-1 text-sm font-medium text-white rounded-full group-hover:hidden top-2 right-2 bg-black/50">
-                                    {isRoubles(itemId) ? `₽${quantity.toLocaleString()}` : `x${quantity}`}
+                                    {isRoubles(itemId) 
+                                        ? `₽${quantity.toLocaleString()}`
+                                        : `x${quantity - (obtainedItems[itemId] || 0)}`
+                                    }
                                 </div>
 
                                 {item.imageLink && (
