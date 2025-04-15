@@ -7,6 +7,7 @@ import hideoutData from "./data/hideoutData.json";
 import { useHideoutData } from "./hooks/useHideoutData";
 import { useBuiltStations } from "./hooks/useBuiltStations";
 import { calculateRequiredItems } from "./utils/hideoutCalculator";
+import Footer from './components/Footer';
 
 const ThemeToggle = () => {
     const { darkMode, toggleDarkMode } = useTheme();
@@ -14,7 +15,7 @@ const ThemeToggle = () => {
     return (
         <button
             onClick={toggleDarkMode}
-            className="fixed top-4 right-4 p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            className="fixed p-2 transition-colors bg-gray-200 rounded-lg top-4 right-4 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
             aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
         >
             {darkMode ? (
@@ -49,20 +50,20 @@ const AppContent = () => {
     }, [selectedStation, selectedLevel, stations, itemsMap, builtStations]);
 
     return (
-        <div className='min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col items-center py-8'>
+        <div className='flex flex-col items-center min-h-screen py-8 bg-gray-100 dark:bg-gray-900'>
             <ThemeToggle />
-            <h1 className='text-4xl font-bold text-gray-800 dark:text-gray-100 mb-6'>
+            <h1 className='mb-6 text-4xl font-bold text-gray-800 dark:text-gray-100'>
                 Tarkov Hideout Item Calculator
             </h1>
 
             {isLoading && <p className='text-lg text-gray-600 dark:text-gray-400'>Loading...</p>}
             {error && (
-                <p className='text-lg text-red-600 bg-red-100 dark:bg-red-900 dark:text-red-200 p-4 rounded-lg mb-4'>{error}</p>
+                <p className='p-4 mb-4 text-lg text-red-600 bg-red-100 rounded-lg dark:bg-red-900 dark:text-red-200'>{error}</p>
             )}
 
             {!isLoading && !error && (
                 <div className='w-full max-w-4xl space-y-6'>
-                    <div className='bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6'>
+                    <div className='p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800'>
                         <StationsList
                             stations={stations}
                             builtStations={builtStations}
@@ -70,7 +71,7 @@ const AppContent = () => {
                         />
                     </div>
 
-                    <div className='bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6'>
+                    <div className='p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800'>
                         <StationSelectors
                             stations={stations}
                             selectedStation={selectedStation}
@@ -85,6 +86,8 @@ const AppContent = () => {
                     </div>
                 </div>
             )}
+            
+            <Footer />
         </div>
     );
 };
