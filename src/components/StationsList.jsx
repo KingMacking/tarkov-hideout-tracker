@@ -36,11 +36,11 @@ const StationsList = ({ stations, builtStations, onStationLevelChange }) => {
 
 	return (
 		<details
-			className='bg-white dark:bg-gray-800 rounded-lg'
+			className='bg-white rounded-lg dark:bg-gray-800'
 			open={isOpen}
 			onToggle={(e) => setIsOpen(e.target.open)}
 		>
-			<summary className='cursor-pointer p-4 flex justify-between items-center border-b border-gray-200 dark:border-gray-700'>
+			<summary className='flex items-center justify-between p-2 border-b border-gray-200 cursor-pointer dark:border-gray-700'>
 				<h2 className='text-xl font-semibold text-gray-800 dark:text-gray-100'>
 					Built Stations ({totalBuilt}/{stations.length})
 				</h2>
@@ -50,16 +50,16 @@ const StationsList = ({ stations, builtStations, onStationLevelChange }) => {
 			</summary>
 
 			<div className='p-4'>
-				<div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+				<div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
 					{stations.map((station) => {
 						const maxLevel = station.levels?.length || 0;
 						return (
 							<div
 								key={station.id}
-								className='flex items-center gap-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg'
+								className='flex items-center gap-2 p-3 rounded-lg bg-gray-50 dark:bg-gray-700'
 							>
 								<div className='flex-1'>
-									<label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+									<label className='block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300'>
 										{station.name}:
 									</label>
 									<Select

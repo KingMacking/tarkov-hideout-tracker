@@ -16,9 +16,20 @@ const ItemList = ({ items }) => {
                 return itemsArray.sort((a, b) => a[1].item.name.localeCompare(b[1].item.name));
             case "remaining":
                 return itemsArray.sort((a, b) => {
-                    const aRemaining = a[1].quantity - (obtainedItems[a[0]] || 0);
-                    const bRemaining = b[1].quantity - (obtainedItems[b[0]] || 0);
-                    return bRemaining - aRemaining;
+                    const aObtained = obtainedItems[a[0]] || 0;
+                    const bObtained = obtainedItems[b[0]] || 0;
+                    
+                    // Calcular porcentajes completados
+                    const aPercentage = (aObtained / a[1].quantity) * 100;
+                    const bPercentage = (bObtained / b[1].quantity) * 100;
+                    
+                    if (aPercentage !== bPercentage) {
+                        // Primero ordenar por porcentaje completado (menor % primero)
+                        return aPercentage - bPercentage;
+                    }
+                    
+                    // Si tienen el mismo porcentaje, ordenar por cantidad total necesaria (mayor cantidad primero)
+                    return b[1].quantity - a[1].quantity;
                 });
             default:
                 return itemsArray;
@@ -32,6 +43,11 @@ const ItemList = ({ items }) => {
 
     // Wrapper para toggleItemObtained con delay en el reordenamiento
     const handleToggleItem = (itemId, amount) => {
+        // Primero calculamos el nuevo valor de obtainedItems
+        const currentObtained = obtainedItems[itemId] || 0;
+        const newObtained = currentObtained + amount;
+        
+        // Actualizamos el estado
         toggleItemObtained(itemId, amount);
         
         if (sortBy === 'remaining') {
@@ -39,8 +55,32 @@ const ItemList = ({ items }) => {
                 clearTimeout(updateTimeout);
             }
             
+            // Creamos una versión temporal de obtainedItems con el nuevo valor
+            const updatedObtainedItems = {
+                ...obtainedItems,
+                [itemId]: newObtained
+            };
+            
+            // Función de ordenamiento temporal que usa los valores actualizados
+            const tempSort = (items) => {
+                const itemsArray = Object.entries(items);
+                return itemsArray.sort((a, b) => {
+                    const aObtained = updatedObtainedItems[a[0]] || 0;
+                    const bObtained = updatedObtainedItems[b[0]] || 0;
+                    
+                    const aPercentage = (aObtained / a[1].quantity) * 100;
+                    const bPercentage = (bObtained / b[1].quantity) * 100;
+                    
+                    if (aPercentage !== bPercentage) {
+                        return aPercentage - bPercentage;
+                    }
+                    
+                    return b[1].quantity - a[1].quantity;
+                });
+            };
+            
             const timeoutId = setTimeout(() => {
-                setSortedItems(sortItems(items));
+                setSortedItems(tempSort(items));
             }, 2000);
             
             setUpdateTimeout(timeoutId);
@@ -160,7 +200,7 @@ const ItemList = ({ items }) => {
                     <div className='w-full h-1.5 rounded-full bg-gray-200/30'>
                         <div
                             className='h-1.5 transition-all bg-blue-600 rounded-full'
-                            style={{ width: `${progress}%` }}
+                            style={{ width: `${progress}%`, maxWidth: "100%" }}
                         />
                     </div>
                 </div>
@@ -192,6 +232,41 @@ const ItemList = ({ items }) => {
     }, []);
 
     const isRoubles = (itemId) => itemId === "5449016a4bdc2d6f028b456f";
+
+    const renderRoubleCard = () => {
+        const roubleItem = Object.entries(items).find(([id]) => isRoubles(id));
+        
+        if (!roubleItem) return null;
+        
+        // eslint-disable-next-line no-unused-vars
+        const [itemId, { quantity, item }] = roubleItem;
+        
+        return (
+            <div className="p-2 mb-4 rounded-lg bg-gray-50 dark:bg-gray-700">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                        {item.imageLink && (
+                            <img
+                                src={item.imageLink}
+                                alt={item.name}
+                                className="object-cover w-[60px] h-[60px] rounded"
+                            />
+                        )}
+                        <div>
+                            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200">
+                                Required Roubles
+                            </h3>
+                            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                                ₽{quantity.toLocaleString()}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // const itemsWithoutRoubles = Object.entries(items).filter(([id]) => !isRoubles(id));
 
     if (!items || Object.keys(items).length === 0) {
         return <p className='italic text-gray-500 dark:text-gray-400'>No items required.</p>;
@@ -252,55 +327,62 @@ const ItemList = ({ items }) => {
                 </button>
             </div>
 
+            {/* Roubles Card */}
+            {renderRoubleCard()}
+
             {viewMode === 'list' ? (
                 <ul className='space-y-3'>
-                    {sortedItems.map(([itemId, { quantity, item }]) => (
-                        <li
-                            key={itemId}
-                            className='flex items-center p-3 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-700'
-                        >
-                            {item.imageLink && (
-                                <img
-                                    src={item.imageLink}
-                                    alt={item.name}
-                                    className='object-contain w-12 h-12 mr-4 rounded'
-                                />
-                            )}
-                            <div className='flex items-center justify-between flex-1'>
-                                <span className='text-gray-700 dark:text-gray-200'>
-                                    {item.name}
-                                </span>
-                                {renderQuantityControls(itemId, quantity, false)}
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            ) : (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                    {sortedItems.map(([itemId, { quantity, item }]) => (
-                        <div key={itemId} className='relative group'>
-                            <div className='relative mb-2 overflow-hidden rounded-lg aspect-square bg-gray-50 dark:bg-gray-700'>
+                    {sortedItems
+                        .filter(([id]) => !isRoubles(id))
+                        .map(([itemId, { quantity, item }]) => (
+                            <li
+                                key={itemId}
+                                className='flex items-center p-2 rounded-lg shadow-sm bg-gray-50 dark:bg-gray-700'
+                            >
                                 {item.imageLink && (
                                     <img
                                         src={item.imageLink}
                                         alt={item.name}
-                                        className='absolute inset-0 object-cover w-full h-full'
+                                        className='object-cover w-12 h-12 mr-4 rounded'
                                     />
                                 )}
-
-                                {/* Hover overlay */}
-                                <div className='absolute inset-0 flex flex-col transition-opacity duration-200 opacity-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent group-hover:opacity-100'>
-                                    {/* Item name in middle */}
-                                    <span className='flex items-center justify-center flex-1 px-2 text-sm font-bold text-center text-white'>
+                                <div className='flex items-center justify-between flex-1'>
+                                    <span className='text-gray-700 dark:text-gray-200'>
                                         {item.name}
                                     </span>
-
-                                    {/* Progress bar at top */}
+                                    {renderQuantityControls(itemId, quantity, false)}
                                 </div>
+                            </li>
+                        ))}
+                </ul>
+            ) : (
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                    {sortedItems
+                        .filter(([id]) => !isRoubles(id))
+                        .map(([itemId, { quantity, item }]) => (
+                            <div key={itemId} className='relative group'>
+                                <div className='relative mb-2 overflow-hidden rounded-lg aspect-square bg-gray-50 dark:bg-gray-700'>
+                                    {item.imageLink && (
+                                        <img
+                                            src={item.imageLink}
+                                            alt={item.name}
+                                            className='absolute inset-0 object-cover w-full h-full'
+                                        />
+                                    )}
+
+                                    {/* Hover overlay */}
+                                    <div className='absolute inset-0 flex flex-col transition-opacity duration-200 opacity-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent group-hover:opacity-100'>
+                                        {/* Item name in middle */}
+                                        <span className='flex items-center justify-center flex-1 px-2 text-sm font-bold text-center text-white'>
+                                            {item.name}
+                                        </span>
+
+                                        {/* Progress bar at top */}
+                                    </div>
+                                </div>
+                                {renderQuantityControls(itemId, quantity, true)}
                             </div>
-                            {renderQuantityControls(itemId, quantity, true)}
-                        </div>
-                    ))}
+                        ))}
                 </div>
             )}
         </div>
