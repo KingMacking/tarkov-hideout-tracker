@@ -1,4 +1,4 @@
-# [_**Tarkov Hideout Calculator**_](https://your-live-url.com "Live app")
+# [_**Tarkov Hideout Calculator**_](https://tarkovhideouttracker.netlify.app/ "Live app")
 
 <p align='center'>
     🏠 Calcula los items necesarios para tu hideout en Escape from Tarkov 🏠
