@@ -4,7 +4,7 @@
     🏠 Calcula los items necesarios para tu hideout en Escape from Tarkov 🏠
 </p>
 <p align='center'>
-    <a href="https://tarkovhideouttracker.netlify.app/"><img height="300" src="https://raw.githubusercontent.com/KingMacking/tarkov-hideout-tracker/refs/heads/master/src/assets/images/hideout_banner.jpg"></a>
+    <a href="https://tarkovhideouttracker.netlify.app/"><img height="300" src="https://raw.githubusercontent.com/KingMacking/tarkov-hideout-tracker/refs/heads/master/src/assets/images/banner.png"></a>
 </p>
 
 ## Sobre el proyecto
