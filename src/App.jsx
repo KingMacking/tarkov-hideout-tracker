@@ -62,7 +62,7 @@ const AppContent = () => {
 		<div className='flex flex-col items-center min-h-screen py-8 bg-gray-100 dark:bg-gray-900'>
 			<ThemeToggle />
 			<h1 className='mb-6 text-4xl font-bold text-gray-800 dark:text-gray-100'>
-				Tarkov Hideout Item Calculator
+				Tarkov Hideout Items Calculator
 			</h1>
 
 			{isLoading && <p className='text-lg text-gray-600 dark:text-gray-400'>Loading...</p>}

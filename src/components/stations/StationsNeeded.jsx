@@ -34,7 +34,7 @@ const StationsNeeded = ({
                 {requiredStations.map((req) => (
                     <div 
                         key={`${req.id}-${req.level}`}
-                        className="relative flex items-center p-3 space-x-3 transition-colors bg-white rounded-lg cursor-pointer dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900"
+                        className="relative flex items-center p-3 space-x-3 transition-colors bg-white rounded-lg cursor-pointer dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-900"
                         onClick={() => handleStationClick(req.station, req.level)}
                         role="button"
                         tabIndex={0}
