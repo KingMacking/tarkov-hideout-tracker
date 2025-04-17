@@ -1,29 +1,46 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect } from 'react';
 
 export const useObtainedItems = () => {
-	const [obtainedItems, setObtainedItems] = useState(() => {
-		const saved = localStorage.getItem("obtainedItems");
-		return saved ? JSON.parse(saved) : {};
-	});
+    const [obtainedItems, setObtainedItems] = useState(() => {
+        try {
+            const saved = localStorage.getItem("obtainedItems");
+            return saved ? JSON.parse(saved) : {};
+        } catch (e) {
+            console.error("Error loading obtained items from localStorage:", e);
+            return {};
+        }
+    });
 
-	useEffect(() => {
-		localStorage.setItem("obtainedItems", JSON.stringify(obtainedItems));
-	}, [obtainedItems]);
+    useEffect(() => {
+        const handleStorageUpdate = () => {
+            const saved = localStorage.getItem("obtainedItems");
+            if (saved) {
+                setObtainedItems(JSON.parse(saved));
+            }
+        };
 
-	const toggleItemObtained = (itemId, quantity = 1) => {
-		setObtainedItems((prev) => {
-			const currentQuantity = prev[itemId] || 0;
-			const newObtainedItems = { ...prev };
+        window.addEventListener('itemsUpdated', handleStorageUpdate);
+        return () => window.removeEventListener('itemsUpdated', handleStorageUpdate);
+    }, []);
 
-			if (currentQuantity + quantity <= 0) {
-				delete newObtainedItems[itemId];
-			} else {
-				newObtainedItems[itemId] = currentQuantity + quantity;
-			}
+    useEffect(() => {
+        localStorage.setItem("obtainedItems", JSON.stringify(obtainedItems));
+    }, [obtainedItems]);
 
-			return newObtainedItems;
-		});
-	};
+    const toggleItemObtained = (itemId, quantity = 1) => {
+        setObtainedItems((prev) => {
+            const currentQuantity = prev[itemId] || 0;
+            const newObtainedItems = { ...prev };
 
-	return { obtainedItems, toggleItemObtained };
+            if (currentQuantity + quantity <= 0) {
+                delete newObtainedItems[itemId];
+            } else {
+                newObtainedItems[itemId] = currentQuantity + quantity;
+            }
+
+            return newObtainedItems;
+        });
+    };
+
+    return { obtainedItems, toggleItemObtained };
 };

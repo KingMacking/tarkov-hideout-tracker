@@ -1,124 +1,34 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useObtainedItems } from "../hooks/useObtainedItems";
+import React, { useState } from "react";
+import { useObtainedItems } from "../../hooks/useObtainedItems";
+import { useSortedItems } from "../../hooks/useSortedItems";
+import RoubleCard from "./RoubleCard";
 
 const ItemList = ({ items }) => {
     const [viewMode, setViewMode] = useState("list");
-    const [sortBy, setSortBy] = useState("default");
-    const [sortedItems, setSortedItems] = useState([]);
-    const [updateTimeout, setUpdateTimeout] = useState(null);
     const { obtainedItems, toggleItemObtained } = useObtainedItems();
+    const { sortedItems, sortBy, setSortBy, handleItemUpdate } = useSortedItems(items, obtainedItems);
 
-    // Función para ordenar items
-    const sortItems = useCallback((items) => {
-        const itemsArray = Object.entries(items);
-        switch (sortBy) {
-            case "name":
-                return itemsArray.sort((a, b) => a[1].item.name.localeCompare(b[1].item.name));
-            case "remaining":
-                return itemsArray.sort((a, b) => {
-                    const aObtained = obtainedItems[a[0]] || 0;
-                    const bObtained = obtainedItems[b[0]] || 0;
-                    
-                    // Calcular porcentajes completados
-                    const aPercentage = (aObtained / a[1].quantity) * 100;
-                    const bPercentage = (bObtained / b[1].quantity) * 100;
-                    
-                    if (aPercentage !== bPercentage) {
-                        // Primero ordenar por porcentaje completado (menor % primero)
-                        return aPercentage - bPercentage;
-                    }
-                    
-                    // Si tienen el mismo porcentaje, ordenar por cantidad total necesaria (mayor cantidad primero)
-                    return b[1].quantity - a[1].quantity;
-                });
-            default:
-                return itemsArray;
-        }
-    }, [sortBy, obtainedItems]);
-
-    // Efecto para actualizar items ordenados
-    useEffect(() => {
-        setSortedItems(sortItems(items));
-    }, [items, sortBy]); // No incluimos obtainedItems aquí
-
-    // Wrapper para toggleItemObtained con delay en el reordenamiento
     const handleToggleItem = (itemId, amount) => {
-        // Primero calculamos el nuevo valor de obtainedItems
         const currentObtained = obtainedItems[itemId] || 0;
         const newObtained = currentObtained + amount;
         
-        // Actualizamos el estado
         toggleItemObtained(itemId, amount);
-        
-        if (sortBy === 'remaining') {
-            if (updateTimeout) {
-                clearTimeout(updateTimeout);
-            }
-            
-            // Creamos una versión temporal de obtainedItems con el nuevo valor
-            const updatedObtainedItems = {
-                ...obtainedItems,
-                [itemId]: newObtained
-            };
-            
-            // Función de ordenamiento temporal que usa los valores actualizados
-            const tempSort = (items) => {
-                const itemsArray = Object.entries(items);
-                return itemsArray.sort((a, b) => {
-                    const aObtained = updatedObtainedItems[a[0]] || 0;
-                    const bObtained = updatedObtainedItems[b[0]] || 0;
-                    
-                    const aPercentage = (aObtained / a[1].quantity) * 100;
-                    const bPercentage = (bObtained / b[1].quantity) * 100;
-                    
-                    if (aPercentage !== bPercentage) {
-                        return aPercentage - bPercentage;
-                    }
-                    
-                    return b[1].quantity - a[1].quantity;
-                });
-            };
-            
-            const timeoutId = setTimeout(() => {
-                setSortedItems(tempSort(items));
-            }, 2000);
-            
-            setUpdateTimeout(timeoutId);
-        }
+        handleItemUpdate(itemId, newObtained);
     };
 
-    // Modificar renderQuantityControls para usar handleToggleItem
     const renderQuantityControls = (itemId, totalRequired, inGrid = false) => {
-        // Si es Roubles, solo mostrar la cantidad
-        if (isRoubles(itemId)) {
-            return (
-                <div
-                    className={`flex items-center justify-center ${
-                        inGrid ? "text-white" : "text-gray-700 dark:text-gray-200"
-                    }`}
-                >
-                    <span className={inGrid ? "text-sm font-medium" : "text-base font-medium"}>
-                        ₽{totalRequired.toLocaleString()}
-                    </span>
-                </div>
-            );
-        }
-
         const obtained = obtainedItems[itemId] || 0;
         const progress = (obtained / totalRequired) * 100;
 
         if (inGrid) {
             return (
                 <div className='flex flex-col w-full'>
-                    {/* Progress bar */}
                     <div className='w-full h-2 overflow-hidden rounded-lg bg-gray-200/30'>
                         <div
                             className='h-2 transition-all bg-blue-600'
                             style={{ width: `${progress}%` }}
                         />
                     </div>
-
-                    {/* Controls - only visible on hover */}
                     <div className='flex items-center justify-between w-full px-2 mt-auto'>
                         <button
                             onClick={() => handleToggleItem(itemId, -1)}
@@ -166,7 +76,6 @@ const ItemList = ({ items }) => {
             );
         }
 
-        // List view controls remain the same
         return (
             <div
                 className={`flex items-center ${
@@ -222,51 +131,18 @@ const ItemList = ({ items }) => {
         );
     };
 
-    // Cleanup al desmontar
-    useEffect(() => {
-        return () => {
-            if (updateTimeout) {
-                clearTimeout(updateTimeout);
-            }
-        };
-    }, []);
-
     const isRoubles = (itemId) => itemId === "5449016a4bdc2d6f028b456f";
 
     const renderRoubleCard = () => {
         const roubleItem = Object.entries(items).find(([id]) => isRoubles(id));
-        
+
         if (!roubleItem) return null;
-        
+
         // eslint-disable-next-line no-unused-vars
         const [itemId, { quantity, item }] = roubleItem;
-        
-        return (
-            <div className="p-2 mb-4 rounded-lg bg-gray-50 dark:bg-gray-700">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        {item.imageLink && (
-                            <img
-                                src={item.imageLink}
-                                alt={item.name}
-                                className="object-cover w-[60px] h-[60px] rounded"
-                            />
-                        )}
-                        <div>
-                            <h3 className="text-lg font-medium text-gray-800 dark:text-gray-200">
-                                Required Roubles
-                            </h3>
-                            <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                ₽{quantity.toLocaleString()}
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
 
-    // const itemsWithoutRoubles = Object.entries(items).filter(([id]) => !isRoubles(id));
+        return <RoubleCard item={item} quantity={quantity} />;
+    };
 
     if (!items || Object.keys(items).length === 0) {
         return <p className='italic text-gray-500 dark:text-gray-400'>No items required.</p>;
@@ -327,10 +203,9 @@ const ItemList = ({ items }) => {
                 </button>
             </div>
 
-            {/* Roubles Card */}
             {renderRoubleCard()}
 
-            {viewMode === 'list' ? (
+            {viewMode === "list" ? (
                 <ul className='space-y-3'>
                     {sortedItems
                         .filter(([id]) => !isRoubles(id))
@@ -356,7 +231,7 @@ const ItemList = ({ items }) => {
                         ))}
                 </ul>
             ) : (
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                <div className='grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6'>
                     {sortedItems
                         .filter(([id]) => !isRoubles(id))
                         .map(([itemId, { quantity, item }]) => (
@@ -368,16 +243,12 @@ const ItemList = ({ items }) => {
                                             alt={item.name}
                                             className='absolute inset-0 object-cover w-full h-full'
                                         />
-                                    )}
-
-                                    {/* Hover overlay */}
+                                    )
+                                    }
                                     <div className='absolute inset-0 flex flex-col transition-opacity duration-200 opacity-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent group-hover:opacity-100'>
-                                        {/* Item name in middle */}
                                         <span className='flex items-center justify-center flex-1 px-2 text-sm font-bold text-center text-white'>
                                             {item.name}
                                         </span>
-
-                                        {/* Progress bar at top */}
                                     </div>
                                 </div>
                                 {renderQuantityControls(itemId, quantity, true)}

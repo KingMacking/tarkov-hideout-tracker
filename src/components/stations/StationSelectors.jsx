@@ -71,7 +71,7 @@ export const StationSelectors = ({
     return (
         <div className='space-y-4'>
             <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label className='block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300'>
                     Select Station:
                 </label>
                 <Select
@@ -86,7 +86,7 @@ export const StationSelectors = ({
                 />
             </div>
             <div>
-                <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                <label className='block mb-1 text-sm font-medium text-gray-700 dark:text-gray-300'>
                     Select Level:
                 </label>
                 <Select
