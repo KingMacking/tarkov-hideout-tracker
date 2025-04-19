@@ -11,7 +11,7 @@ const Footer = () => {
             </p>
             <div className="flex justify-center gap-4">
                 <a 
-                    href="https://github.com/KingMacking/tarkov-hideout-app" 
+                    href="https://github.com/KingMacking/tarkov-hideout-tracker" 
                     className="text-gray-700 transition-colors hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
                     target="_blank"
                     rel="noopener noreferrer"
