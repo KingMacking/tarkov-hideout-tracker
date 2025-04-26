@@ -103,7 +103,13 @@ const AppContent = () => {
 					</div>
 
 					<div className='mt-6'>
-						<ItemList items={requiredItems} />
+						<ItemList 
+							items={requiredItems} 
+							stations={stations}
+							selectedLevel={selectedLevel}
+							selectedStation={selectedStation}
+							builtStations={builtStations}
+						/>
 					</div>
 				</div>
 			)}
