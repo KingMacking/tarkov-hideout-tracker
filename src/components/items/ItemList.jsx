@@ -4,7 +4,7 @@ import { useSortedItems } from "../../hooks/useSortedItems";
 import RoubleCard from "./RoubleCard";
 import ItemTooltip from "./ItemTooltip";
 
-const ItemList = ({ items, stations, selectedLevel, selectedStation, builtStations }) => {
+const ItemList = ({ items, stations, selectedStations, builtStations }) => {
 	const [viewMode, setViewMode] = useState("list");
 	const { obtainedItems, toggleItemObtained } = useObtainedItems();
 	const { sortedItems, sortBy, setSortBy, handleItemUpdate } = useSortedItems(
@@ -222,10 +222,9 @@ const ItemList = ({ items, stations, selectedLevel, selectedStation, builtStatio
 									<ItemTooltip
 										stations={stations}
 										itemId={itemId}
-										selectedStation={selectedStation}
-										selectedLevel={selectedLevel}
+										selectedStations={selectedStations}
 										builtStations={builtStations}
-                                        isGrid={false}
+										isGrid={false}
 									/>
 								</div>
 								{item.imageLink && (
@@ -250,14 +249,13 @@ const ItemList = ({ items, stations, selectedLevel, selectedStation, builtStatio
 						.filter(([id]) => !isRoubles(id))
 						.map(([itemId, { quantity, item }]) => (
 							<div key={itemId} className='relative group'>
-								<div className='transition-opacity duration-200 opacity-0 pointer-events-none  group-hover:opacity-100 group-hover:pointer-events-auto'>
+								<div className='transition-opacity duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto'>
 									<ItemTooltip
 										stations={stations}
 										itemId={itemId}
-										selectedStation={selectedStation}
-										selectedLevel={selectedLevel}
+										selectedStations={selectedStations}
 										builtStations={builtStations}
-                                        isGrid={true}
+										isGrid={true}
 									/>
 								</div>
 								<div className='relative mb-2 overflow-hidden rounded-lg aspect-square bg-gray-50 dark:bg-gray-700'>

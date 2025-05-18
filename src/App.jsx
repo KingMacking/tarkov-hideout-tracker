@@ -42,21 +42,19 @@ const ThemeToggle = () => {
 
 const AppContent = () => {
 	const { stations, itemsMap, isLoading, error } = useHideoutData(hideoutData);
-	const { builtStations, handleStationLevelChange } = useBuiltStations(stations);
-	const [selectedStation, setSelectedStation] = useState(null);
-	const [selectedLevel, setSelectedLevel] = useState(null);
+    const { builtStations, handleStationLevelChange } = useBuiltStations(stations);
+    const [selectedStations, setSelectedStations] = useState([]);
 	const [requiredItems, setRequiredItems] = useState({});
 
 	useEffect(() => {
-		const items = calculateRequiredItems({
-			station: selectedStation,
-			level: selectedLevel,
-			stations,
-			itemsMap,
-			builtStations,
-		});
-		setRequiredItems(items);
-	}, [selectedStation, selectedLevel, stations, itemsMap, builtStations]);
+        const items = calculateRequiredItems({
+            selectedStations,
+            stations,
+            itemsMap,
+            builtStations,
+        });
+        setRequiredItems(items);
+    }, [selectedStations, stations, itemsMap, builtStations]);
 
 	return (
 		<div className='flex flex-col items-center min-h-screen py-8 bg-gray-100 dark:bg-gray-900'>
@@ -73,46 +71,43 @@ const AppContent = () => {
 			)}
 
 			{!isLoading && !error && (
-				<div className='w-full max-w-4xl space-y-6'>
-					<div className='p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800'>
-						<StationsList
-							stations={stations}
-							builtStations={builtStations}
-							onStationLevelChange={handleStationLevelChange}
-						/>
-					</div>
+                <div className='w-full max-w-4xl space-y-6'>
+                    <div className='p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800'>
+                        <StationsList
+                            stations={stations}
+                            builtStations={builtStations}
+                            onStationLevelChange={handleStationLevelChange}
+                        />
+                    </div>
 
-					<div className='p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800'>
-						<StationSelectors
-							stations={stations}
-							selectedStation={selectedStation}
-							selectedLevel={selectedLevel}
-							setSelectedStation={setSelectedStation}
-							setSelectedLevel={setSelectedLevel}
-						/>
-					</div>
-					<div className='mt-6'>
-						<StationsNeeded
+                    <div className='p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800'>
+                        <StationSelectors
+                            stations={stations}
+                            selectedStations={selectedStations}
+                            setSelectedStations={setSelectedStations}
 							builtStations={builtStations}
-							selectedLevel={selectedLevel}
-							selectedStation={selectedStation}
-							stations={stations}
-                            setSelectedLevel={setSelectedLevel}
-                            setSelectedStation={setSelectedStation}
-						/>
-					</div>
+                        />
+                    </div>
 
-					<div className='mt-6'>
-						<ItemList 
-							items={requiredItems} 
-							stations={stations}
-							selectedLevel={selectedLevel}
-							selectedStation={selectedStation}
-							builtStations={builtStations}
-						/>
-					</div>
-				</div>
-			)}
+                    <div className='mt-6'>
+                        <StationsNeeded
+                            stations={stations}
+                            selectedStations={selectedStations}
+                            builtStations={builtStations}
+                            setSelectedStations={setSelectedStations}
+                        />
+                    </div>
+
+                    <div className='mt-6'>
+                        <ItemList
+                            items={requiredItems}
+                            stations={stations}
+                            selectedStations={selectedStations}
+                            builtStations={builtStations}
+                        />
+                    </div>
+                </div>
+            )}
 
 			<Footer />
 		</div>
