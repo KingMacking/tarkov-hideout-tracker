@@ -3,9 +3,6 @@ import React from 'react';
 const Footer = () => {
     return (
         <footer className="flex flex-col items-center py-4 mt-auto text-gray-800 dark:text-gray-200">
-            <p className="text-lg">
-                Developed by <span className="font-bold">Matias Atzori</span>
-            </p>
             <p className="mb-2 text-sm text-gray-600 dark:text-gray-400">
                 Open Source Project
             </p>
