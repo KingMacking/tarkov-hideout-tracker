@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import { useObtainedItems } from "../../hooks/useObtainedItems";
 import { useSortedItems } from "../../hooks/useSortedItems";
 import RoubleCard from "./RoubleCard";
 import ItemTooltip from "./ItemTooltip";
 
-const ItemList = ({ items, stations, selectedStations, builtStations }) => {
+const ItemList = ({ items, stations, selectedStations, builtStations, obtainedItems, toggleItemObtained }) => {
 	const [viewMode, setViewMode] = useState("list");
-	const { obtainedItems, toggleItemObtained } = useObtainedItems();
 	const { sortedItems, sortBy, setSortBy, handleItemUpdate } = useSortedItems(
 		items,
 		obtainedItems

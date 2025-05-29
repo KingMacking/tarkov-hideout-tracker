@@ -9,6 +9,10 @@ import { useBuiltStations } from "./hooks/useBuiltStations";
 import { calculateRequiredItems } from "./utils/hideoutCalculator";
 import Footer from "./components/layout/Footer";
 import StationsNeeded from "./components/stations/StationsNeeded";
+import { useAppConfig } from "./hooks/useAppConfig";
+import ConfigModal from "./components/config/ConfigModal";
+import ConfigButton from "./components/config/ConfigButton";
+import { useObtainedItems } from "./hooks/useObtainedItems";
 
 const ThemeToggle = () => {
 	const { darkMode, toggleDarkMode } = useTheme();
@@ -42,9 +46,16 @@ const ThemeToggle = () => {
 
 const AppContent = () => {
 	const { stations, itemsMap, isLoading, error } = useHideoutData(hideoutData);
-    const { builtStations, handleStationLevelChange } = useBuiltStations(stations);
-    const [selectedStations, setSelectedStations] = useState([]);
+    const { builtStations, handleStationLevelChange, clearBuiltStations } = useBuiltStations(stations);
+    const { obtainedItems, clearObtainedItems, toggleItemObtained } = useObtainedItems();
+	const [selectedStations, setSelectedStations] = useState([]);
 	const [requiredItems, setRequiredItems] = useState({});
+	const { config, updateConfig, resetConfig } = useAppConfig();
+    const [showConfig, setShowConfig] = useState(false);
+
+	useEffect(() => {
+        if (!config.initialConfigDone) setShowConfig(true);
+    }, [config.initialConfigDone]);
 
 	useEffect(() => {
         const items = calculateRequiredItems({
@@ -59,6 +70,20 @@ const AppContent = () => {
 	return (
 		<div className='flex flex-col items-center min-h-screen py-8 bg-gray-100 dark:bg-gray-900'>
 			<ThemeToggle />
+			<ConfigButton onClick={() => setShowConfig(true)} />
+            <ConfigModal
+                open={showConfig}
+                onClose={() => setShowConfig(false)}
+                config={config}
+                updateConfig={updateConfig}
+                resetConfig={resetConfig}
+                stations={stations}
+                handleStationLevelChange={handleStationLevelChange}
+                builtStations={builtStations}
+                clearBuiltStations={clearBuiltStations}
+                obtainedItems={obtainedItems}
+                clearObtainedItems={clearObtainedItems}
+            />
 			<h1 className='mb-6 text-4xl font-bold text-gray-800 dark:text-gray-100'>
 				Tarkov Hideout Items Calculator
 			</h1>
@@ -104,6 +129,8 @@ const AppContent = () => {
                             stations={stations}
                             selectedStations={selectedStations}
                             builtStations={builtStations}
+							obtainedItems={obtainedItems}
+							toggleItemObtained={toggleItemObtained}
                         />
                     </div>
                 </div>

@@ -23,6 +23,11 @@ export const useObtainedItems = () => {
         return () => window.removeEventListener('itemsUpdated', handleStorageUpdate);
     }, []);
 
+    const clearObtainedItems = () => {
+        setObtainedItems({});
+        localStorage.removeItem("obtainedItems");
+    };
+
     useEffect(() => {
         localStorage.setItem("obtainedItems", JSON.stringify(obtainedItems));
     }, [obtainedItems]);
@@ -42,5 +47,5 @@ export const useObtainedItems = () => {
         });
     };
 
-    return { obtainedItems, toggleItemObtained };
+    return { obtainedItems, toggleItemObtained, clearObtainedItems };
 };
