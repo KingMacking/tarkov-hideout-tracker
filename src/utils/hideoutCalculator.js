@@ -55,8 +55,8 @@ export const calculateRequiredItems = (params) => {
 
 			const quantity = parseInt(req.quantity, 10);
 			if (!isNaN(quantity) && quantity > 0) {
-				// Take the maximum quantity needed among all stations
-				items[itemId].quantity = Math.max(items[itemId].quantity, quantity);
+				// CAMBIO: Sumar las cantidades en vez de tomar el máximo
+				items[itemId].quantity += quantity;
 			}
 		});
 	};
