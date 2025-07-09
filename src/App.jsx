@@ -87,7 +87,7 @@ const AppContent = () => {
 			<h1 className='mb-6 text-4xl font-bold text-gray-800 dark:text-gray-100'>
 				Tarkov Hideout Items Calculator
 			</h1>
-            <p className="text-gray-800 dark:text-gray-100">I'm keeping an eye on Tarkov dev updates to keep the required hideout item data up to date with the new wipe</p>
+            <p className="max-w-4xl p-8 mb-4 text-2xl text-center text-gray-100 bg-red-900 rounded-lg text-balance">I'm keeping an eye on Tarkov dev updates to keep the required hideout item data up to date with the new wipe.</p>
 
 			{isLoading && <p className='text-lg text-gray-600 dark:text-gray-400'>Loading...</p>}
 			{error && (
