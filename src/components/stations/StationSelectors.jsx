@@ -1,13 +1,34 @@
-import React from "react";
-import { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import Select from "react-select";
 
 export const StationSelectors = ({
 	stations,
 	selectedStations,
 	setSelectedStations,
-    builtStations,
+	builtStations,
 }) => {
+	// Leer estaciones seleccionadas de localStorage al montar
+	useEffect(() => {
+		const saved = localStorage.getItem("selectedStations");
+		if (saved) {
+			try {
+				const parsed = JSON.parse(saved);
+				if (Array.isArray(parsed) && parsed.length > 0) {
+					setSelectedStations(parsed);
+				}
+			} catch (e) {
+				console.log(e);
+			}
+		}
+		// Solo en el primer render
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	// Guardar estaciones seleccionadas en localStorage cada vez que cambian
+	useEffect(() => {
+		localStorage.setItem("selectedStations", JSON.stringify(selectedStations));
+	}, [selectedStations]);
+
 	const stationOptions = useMemo(() => {
 		const options = [];
 		stations.forEach((station) => {
@@ -26,19 +47,17 @@ export const StationSelectors = ({
 
 	// Filter out selected options
 	const availableOptions = useMemo(() => {
-        return stationOptions.filter(option => {
-            // Check if option is already selected
-            const isSelected = selectedStations.some(
-                selected => selected.value === option.value
-            );
-            
-            // Find the station and check if it's built
-            const station = stations.find(s => s.name === option.stationName);
-            const isBuilt = station && builtStations[station.id] >= option.level;
+		return stationOptions.filter((option) => {
+			// Check if option is already selected
+			const isSelected = selectedStations.some((selected) => selected.value === option.value);
 
-            return !isSelected && !isBuilt;
-        });
-    }, [stationOptions, selectedStations, builtStations, stations]);
+			// Find the station and check if it's built
+			const station = stations.find((s) => s.name === option.stationName);
+			const isBuilt = station && builtStations[station.id] >= option.level;
+
+			return !isSelected && !isBuilt;
+		});
+	}, [stationOptions, selectedStations, builtStations, stations]);
 
 	const handleStationSelect = (selected) => {
 		if (!selected) return;
@@ -73,7 +92,7 @@ export const StationSelectors = ({
 		menu: (baseStyles) => ({
 			...baseStyles,
 			backgroundColor: "var(--select-bg)",
-            zIndex: "15",
+			zIndex: "15",
 		}),
 		option: (baseStyles, { isFocused, isSelected }) => ({
 			...baseStyles,
