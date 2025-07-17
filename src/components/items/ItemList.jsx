@@ -2,13 +2,21 @@ import React, { useState } from "react";
 import { useSortedItems } from "../../hooks/useSortedItems";
 import RoubleCard from "./RoubleCard";
 import ItemTooltip from "./ItemTooltip";
+import { useEffect } from "react";
 
 const ItemList = ({ items, stations, selectedStations, builtStations, obtainedItems, toggleItemObtained }) => {
-	const [viewMode, setViewMode] = useState("list");
+	const [viewMode, setViewMode] = useState(() => {
+	const savedMode = localStorage.getItem("viewMode");
+		return savedMode === "grid" || savedMode === "list" ? savedMode : "list";
+	});
 	const { sortedItems, sortBy, setSortBy, handleItemUpdate } = useSortedItems(
 		items,
 		obtainedItems
 	);
+
+	useEffect(() => {
+	localStorage.setItem("viewMode", viewMode);
+}, [viewMode]);
 
 	const handleToggleItem = (itemId, amount) => {
 		const currentObtained = obtainedItems[itemId] || 0;
