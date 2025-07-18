@@ -1,22 +1,23 @@
-import React, { useState } from "react";
 import { useSortedItems } from "../../hooks/useSortedItems";
 import RoubleCard from "./RoubleCard";
 import ItemTooltip from "./ItemTooltip";
-import { useEffect } from "react";
+import { useAppConfig } from "../../hooks/useAppConfig";
 
-const ItemList = ({ items, stations, selectedStations, builtStations, obtainedItems, toggleItemObtained }) => {
-	const [viewMode, setViewMode] = useState(() => {
-	const savedMode = localStorage.getItem("viewMode");
-		return savedMode === "grid" || savedMode === "list" ? savedMode : "list";
-	});
+const ItemList = ({
+	items,
+	stations,
+	selectedStations,
+	builtStations,
+	obtainedItems,
+	toggleItemObtained,
+}) => {
 	const { sortedItems, sortBy, setSortBy, handleItemUpdate } = useSortedItems(
 		items,
 		obtainedItems
 	);
 
-	useEffect(() => {
-	localStorage.setItem("viewMode", viewMode);
-}, [viewMode]);
+	const { config, updateConfig } = useAppConfig();
+	const viewMode = config.viewMode || "list";
 
 	const handleToggleItem = (itemId, amount) => {
 		const currentObtained = obtainedItems[itemId] || 0;
@@ -159,7 +160,7 @@ const ItemList = ({ items, stations, selectedStations, builtStations, obtainedIt
 	}
 
 	const toggleView = () => {
-		setViewMode((prev) => (prev === "list" ? "grid" : "list"));
+		updateConfig({ viewMode: viewMode === "list" ? "grid" : "list" });
 	};
 
 	return (

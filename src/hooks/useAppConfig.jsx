@@ -4,6 +4,8 @@ const DEFAULT_CONFIG = {
     onboardingRead: false,
     initialConfigDone: false,
     accountType: "",
+    viewMode: "list",
+    sortBy: "default",
 };
 
 export function useAppConfig() {

@@ -1,16 +1,15 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAppConfig } from "./useAppConfig";
 
 export const useSortedItems = (items, obtainedItems) => {
-	const [sortBy, setSortBy] = useState(() => {
-		const savedSort = localStorage.getItem("sortBy");
-		return savedSort === "name" || savedSort === "remaining" ? savedSort : "default";
-	});
+	const { config, updateConfig } = useAppConfig();
+	const sortBy = config.sortBy || "default";
+
+	const setSortBy = (value) => {
+		updateConfig({ sortBy: value });
+	};
 	const [sortedItems, setSortedItems] = useState([]);
 	const [updateTimeout, setUpdateTimeout] = useState(null);
-
-	useEffect(() => {
-		localStorage.setItem("sortBy", sortBy);
-	}, [sortBy]);
 	const sortItems = useCallback(
 		(items, tempObtainedItems = obtainedItems) => {
 			const itemsArray = Object.entries(items);
